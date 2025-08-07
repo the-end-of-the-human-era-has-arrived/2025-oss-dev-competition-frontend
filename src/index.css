@@ -1,0 +1,29 @@
+:root {
+  --main-blue: #2e75cc;
+  --main-blue-dark: #1e5aa8;
+  --main-blue-light: #4a9eff;
+  --main-bg: #ffffff;
+  --main-border: #e1e5e9;
+  --main-card-bg: #ffffff;
+  --main-card-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  --main-text: #37352f;
+  --accent-color: #2e75cc;
+  --secondary-bg: #f7f6f3;
+  --hover-bg: #f1f1ef;
+}
+
+html, body {
+  margin: 0;
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, 'Apple Color Emoji', Arial, sans-serif, 'Segoe UI Emoji', 'Segoe UI Symbol';
+  background-color: var(--main-bg);
+  color: var(--main-text);
+}
+
+button, input, textarea, h1, h2, h3, h4, h5, h6, .card, .topbar {
+  font-family: inherit;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
