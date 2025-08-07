@@ -1,11 +1,15 @@
 import React from 'react';
-import { Message } from '../../types';
 import styles from './ChatLog.module.css';
 
-interface ChatLogProps {
+type Message = {
+  sender: 'user' | 'ai';
+  text: string;
+};
+
+type ChatLogProps = {
   messages: Message[];
   onClear?: () => void;
-}
+};
 
 const ChatLog: React.FC<ChatLogProps> = ({ messages, onClear }) => {
   return (

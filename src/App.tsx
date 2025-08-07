@@ -1,40 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './features/auth';
-import { ChatProvider, useChat } from './features/chat';
-import { MindMapProvider, useMindMap } from './features/mindmap';
-import ChatLog from './features/chat/components/ChatLog';
-import ChatInput from './features/chat/components/ChatInput';
-import MindMap from './features/mindmap/components/MindMap';
+import React, { useState } from 'react';
+import ChatLog, { Message } from './components/ChatLog';
+import ChatInput from './components/ChatInput';
+import MindMap from './components/MindMap';
 import TopBar from './components/TopBar';
-import LoginButton from './features/auth/components/LoginButton';
-import UserProfile from './features/auth/components/UserProfile';
 import styles from './App.module.css';
 
-const AppContent: React.FC = () => {
+const App: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [showChat, setShowChat] = useState(false);
-  const { isLoggedIn, loading: authLoading } = useAuth();
-  const { messages, loading: chatLoading, sendMessage, clearMessages } = useChat();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const handleSend = async (text: string) => {
-    await sendMessage(text);
+  const handleSend = (text: string) => {
+    setMessages(prev => [...prev, { sender: 'user', text }]);
+    setTimeout(() => {
+      setMessages(prev => [...prev, { sender: 'ai', text: text }]);
+    }, 500);
   };
-
-  const handleClear = () => {
-    clearMessages();
-  };
-
-  if (authLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <div className={styles.loadingText}>로딩 중...</div>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.container}>
-      <TopBar />
+      <TopBar isLoggedIn={isLoggedIn} onLogin={() => setIsLoggedIn(true)} onLogout={() => setIsLoggedIn(false)} />
       <div className={styles.topBarSpacer} />
       {isLoggedIn ? (
         <div className={styles.mainContent}>
@@ -46,7 +31,7 @@ const AppContent: React.FC = () => {
               maxWidth: showChat ? '33%' : '90%',
             }}
           >
-            <div className={styles.mindmapTitle}>mindmap</div>
+            <div className={styles.mindmapTitle}>👣</div>
             <div className={styles.mindmapContent}>
               <MindMap />
             </div>
@@ -67,13 +52,9 @@ const AppContent: React.FC = () => {
                     ×
                   </button>
                 </div>
-                <ChatLog 
-                  messages={messages} 
-                  onClear={handleClear}
-                  loading={chatLoading}
-                />
+                <ChatLog messages={messages} onClear={() => setMessages([])} />
                 <div className={styles.chatInputContainer}>
-                  <ChatInput onSend={handleSend} disabled={chatLoading} />
+                  <ChatInput onSend={handleSend} />
                 </div>
               </>
             )}
@@ -96,9 +77,6 @@ const AppContent: React.FC = () => {
                 <span className={styles.featureText}>AI 채팅 어시스턴트</span>
               </div>
             </div>
-            <div className={styles.loginSection}>
-              <LoginButton />
-            </div>
           </div>
         </div>
       )}
@@ -112,18 +90,6 @@ const AppContent: React.FC = () => {
         </button>
       )}
     </div>
-  );
-};
-
-const App: React.FC = () => {
-  return (
-    <AuthProvider>
-      <ChatProvider>
-        <MindMapProvider>
-          <AppContent />
-        </MindMapProvider>
-      </ChatProvider>
-    </AuthProvider>
   );
 };
 
