@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import styles from './MindMap.module.css';
 
 // 더미 그래프 데이터 - 여러 개의 독립적인 그래프
@@ -46,34 +46,203 @@ const edges = [
 ];
 
 const MindMap: React.FC = () => {
+  const [zoom, setZoom] = useState(0.5); // 초기 줌을 0.5로 설정
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 줌 제한
+  const MIN_ZOOM = 0.3;
+  const MAX_ZOOM = 3;
+
+  // 컴포넌트 마운트 시 자동으로 전체 보기
+  useEffect(() => {
+    const fitToView = () => {
+      if (containerRef.current) {
+        const container = containerRef.current;
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        
+        // 마인드맵의 실제 크기 계산 (노드들의 최대/최소 좌표)
+        const minX = Math.min(...nodes.map(n => n.x));
+        const maxX = Math.max(...nodes.map(n => n.x));
+        const minY = Math.min(...nodes.map(n => n.y));
+        const maxY = Math.max(...nodes.map(n => n.y));
+        
+        const mindmapWidth = maxX - minX + 100; // 여백 포함
+        const mindmapHeight = maxY - minY + 100; // 여백 포함
+        
+        // 컨테이너에 맞는 줌 레벨 계산
+        const zoomX = containerWidth / mindmapWidth;
+        const zoomY = containerHeight / mindmapHeight;
+        const fitZoom = Math.min(zoomX, zoomY, 1); // 1을 넘지 않도록
+        
+        // 중앙 정렬을 위한 패닝 계산
+        const centerX = (containerWidth - mindmapWidth * fitZoom) / 2;
+        const centerY = (containerHeight - mindmapHeight * fitZoom) / 2;
+        
+        setZoom(fitZoom);
+        setPan({ x: centerX, y: centerY });
+      }
+    };
+
+    // 약간의 지연 후 실행 (컨테이너 크기가 안정화된 후)
+    const timer = setTimeout(fitToView, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 마우스 휠 이벤트 핸들러
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * delta));
+    
+    if (newZoom !== zoom) {
+      // 마우스 포인터 위치를 기준으로 줌
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        const zoomRatio = newZoom / zoom;
+        const newPanX = mouseX - (mouseX - pan.x) * zoomRatio;
+        const newPanY = mouseY - (mouseY - pan.y) * zoomRatio;
+        
+        setZoom(newZoom);
+        setPan({ x: newPanX, y: newPanY });
+      }
+    }
+  }, [zoom, pan]);
+
+  // 마우스 드래그 시작
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0) { // 좌클릭만
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    }
+  }, [pan]);
+
+  // 마우스 드래그 중
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isDragging) {
+      setPan({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  }, [isDragging, dragStart]);
+
+  // 마우스 드래그 종료
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // 줌 리셋 (전체 보기)
+  const handleDoubleClick = useCallback(() => {
+    if (containerRef.current) {
+      const container = containerRef.current;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      
+      const minX = Math.min(...nodes.map(n => n.x));
+      const maxX = Math.max(...nodes.map(n => n.x));
+      const minY = Math.min(...nodes.map(n => n.y));
+      const maxY = Math.max(...nodes.map(n => n.y));
+      
+      const mindmapWidth = maxX - minX + 100;
+      const mindmapHeight = maxY - minY + 100;
+      
+      const zoomX = containerWidth / mindmapWidth;
+      const zoomY = containerHeight / mindmapHeight;
+      const fitZoom = Math.min(zoomX, zoomY, 1);
+      
+      const centerX = (containerWidth - mindmapWidth * fitZoom) / 2;
+      const centerY = (containerHeight - mindmapHeight * fitZoom) / 2;
+      
+      setZoom(fitZoom);
+      setPan({ x: centerX, y: centerY });
+    }
+  }, []);
+
   return (
-    <div className={styles.container}>
-      <svg width="100%" height="100%" className={styles.svg}>
-        {edges.map((edge, i) => {
-          const from = nodes.find(n => n.id === edge.from)!;
-          const to = nodes.find(n => n.id === edge.to)!;
-          return (
-            <line
-              key={i}
-              x1={from.x}
-              y1={from.y}
-              x2={to.x}
-              y2={to.y}
-              className={styles.edge}
-            />
-          );
-        })}
-      </svg>
-      {nodes.map(node => (
-        <div
-          key={node.id}
-          className={`${styles.node} ${styles.nodeCircle}`}
-          style={{
-            left: node.x - 12,
-            top: node.y - 12,
+    <div 
+      ref={containerRef}
+      className={styles.container}
+      onWheel={handleWheel}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onDoubleClick={handleDoubleClick}
+      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+    >
+      <div 
+        className={styles.zoomContainer}
+        style={{
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+          transformOrigin: '0 0',
+        }}
+      >
+        <svg width="100%" height="100%" className={styles.svg}>
+          {edges.map((edge, i) => {
+            const from = nodes.find(n => n.id === edge.from)!;
+            const to = nodes.find(n => n.id === edge.to)!;
+            return (
+              <line
+                key={i}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                className={styles.edge}
+              />
+            );
+          })}
+        </svg>
+        {nodes.map(node => (
+          <div
+            key={node.id}
+            className={`${styles.node} ${styles.nodeCircle}`}
+            style={{
+              left: node.x - 12,
+              top: node.y - 12,
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* 줌 컨트롤 */}
+      <div className={styles.zoomControls}>
+        <button 
+          className={styles.zoomButton}
+          onClick={() => {
+            const newZoom = Math.min(MAX_ZOOM, zoom * 1.2);
+            setZoom(newZoom);
           }}
-        />
-      ))}
+          title="확대"
+        >
+          +
+        </button>
+        <button 
+          className={styles.zoomButton}
+          onClick={() => {
+            const newZoom = Math.max(MIN_ZOOM, zoom * 0.8);
+            setZoom(newZoom);
+          }}
+          title="축소"
+        >
+          −
+        </button>
+        <button 
+          className={styles.zoomButton}
+          onClick={handleDoubleClick}
+          title="전체 보기"
+        >
+          ⌂
+        </button>
+      </div>
     </div>
   );
 };
