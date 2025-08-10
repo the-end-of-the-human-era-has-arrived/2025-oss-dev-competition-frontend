@@ -5,9 +5,15 @@ import MindMap from './components/MindMap';
 import TopBar from './components/TopBar';
 import styles from './App.module.css';
 
+// 더미 출처 데이터
+const sources = [
+  { id: 1, title: '프로젝트 기획서', url: 'https://notion.so/project-plan' },
+  { id: 2, title: '기술 스택 문서', url: 'https://notion.so/tech-stack' },
+  { id: 3, title: 'API 설계 문서', url: 'https://notion.so/api-design' },
+];
+
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [showChat, setShowChat] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleSend = (text: string) => {
@@ -23,41 +29,45 @@ const App: React.FC = () => {
       <div className={styles.topBarSpacer} />
       {isLoggedIn ? (
         <div className={styles.mainContent}>
-          {/* 마인드맵 카드: showChat에 따라 width/flex 조절 */}
-          <div
-            className={styles.mindmapCard}
-            style={{
-              width: showChat ? '33%' : '90%',
-              maxWidth: showChat ? '33%' : '90%',
-            }}
-          >
-            <div className={styles.mindmapTitle}>👣</div>
-            <div className={styles.mindmapContent}>
-              <MindMap />
+          {/* 채팅 카드: 좌측에 고정 */}
+          <div className={styles.chatCard}>
+            <div className={styles.chatHeader}>
+              <h2 className={styles.chatTitle}>AI Agent Chat</h2>
+            </div>
+            <ChatLog messages={messages} onClear={() => setMessages([])} />
+            <div className={styles.chatInputContainer}>
+              <ChatInput onSend={handleSend} />
             </div>
           </div>
-          {/* 채팅 parent 카드: showChat true일 때만 오른쪽에 슬라이드 인 */}
-          <div
-            className={`${styles.chatCard} ${showChat ? styles.chatCardVisible : styles.chatCardHidden}`}
-          >
-            {showChat && (
-              <>
-                <div className={styles.chatHeader}>
-                  <h2 className={styles.chatTitle}>AI Agent Chat</h2>
-                  <button
-                    onClick={() => setShowChat(false)}
-                    className={styles.closeButton}
-                    title="채팅 닫기"
-                  >
-                    ×
-                  </button>
-                </div>
-                <ChatLog messages={messages} onClear={() => setMessages([])} />
-                <div className={styles.chatInputContainer}>
-                  <ChatInput onSend={handleSend} />
-                </div>
-              </>
-            )}
+          {/* 마인드맵 영역: 우측에 수직 분리 */}
+          <div className={styles.mindmapSection}>
+            {/* 마인드맵 카드 (2/3) */}
+            <div className={styles.mindmapCard}>
+              <div className={styles.mindmapTitle}>👣</div>
+              <div className={styles.mindmapContent}>
+                <MindMap />
+              </div>
+            </div>
+            {/* 출처 카드 (1/3) */}
+            <div className={styles.sourcesCard}>
+              <div className={styles.sourcesHeader}>
+                <h3 className={styles.sourcesTitle}>📚 참고 출처</h3>
+              </div>
+              <div className={styles.sourcesList}>
+                {sources.map(source => (
+                  <div key={source.id} className={styles.sourceItem}>
+                    <a 
+                      href={source.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className={styles.sourceLink}
+                    >
+                      {source.title}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -79,15 +89,6 @@ const App: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
-      {/* 채팅 열기 플로팅 버튼 (로그인 후, 채팅이 닫혀 있을 때만) */}
-      {isLoggedIn && !showChat && (
-        <button
-          onClick={() => setShowChat(true)}
-          className={styles.floatingButton}
-        >
-          💬
-        </button>
       )}
     </div>
   );
