@@ -43,7 +43,7 @@ const App: React.FC = () => {
           <div className={styles.mindmapSection}>
             {/* 마인드맵 카드 (2/3) */}
             <div className={styles.mindmapCard}>
-              <div className={styles.mindmapTitle}>👣</div>
+              <div className={styles.mindmapTitle}></div>
               <div className={styles.mindmapContent}>
                 <MindMap />
               </div>

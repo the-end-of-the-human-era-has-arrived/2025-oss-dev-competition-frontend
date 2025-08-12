@@ -19,6 +19,16 @@
   font-weight: 600;
   font-size: 16px;
   color: #37352f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: contain;
 }
 
 .userInfo {

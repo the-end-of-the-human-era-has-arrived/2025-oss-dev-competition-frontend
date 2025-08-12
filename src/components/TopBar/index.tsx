@@ -10,7 +10,14 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ isLoggedIn, onLogin, onLogout }) => {
   return (
     <header className={styles.header}>
-      <div className={styles.title}>Notion Agent</div>
+      <div className={styles.title}>
+        <img 
+          src="/favicon.png" 
+          alt="Notion Agent Logo" 
+          className={styles.logo}
+        />
+        Notion Agent
+      </div>
       <div className={styles.userInfo}>
         {isLoggedIn ? (
           <>
