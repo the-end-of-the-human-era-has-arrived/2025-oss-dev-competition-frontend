@@ -1,13 +1,11 @@
 import React from 'react';
 import styles from './TopBar.module.css';
+import { useAuthStore } from '../../stores/authStore';
+import { LoginButton, LogoutButton } from './authApi';
 
-interface TopBarProps {
-  isLoggedIn: boolean;
-  onLogin: () => void;
-  onLogout: () => void;
-}
+const TopBar: React.FC = () => {
+  const { isLoggedIn, user } = useAuthStore();
 
-const TopBar: React.FC<TopBarProps> = ({ isLoggedIn, onLogin, onLogout }) => {
   return (
     <header className={styles.header}>
       <div className={styles.title}>
@@ -20,16 +18,12 @@ const TopBar: React.FC<TopBarProps> = ({ isLoggedIn, onLogin, onLogout }) => {
       </div>
       <div className={styles.userInfo}>
         {isLoggedIn ? (
-          <>
-            <span className={styles.userName}>홍길동</span>
-            <button className={styles.logoutButton} onClick={onLogout}>
-              로그아웃
-            </button>
-          </>
+          <div className={styles.loggedInUser}>
+            <span className={styles.userName}>{user?.name || '사용자'}</span>
+            <LogoutButton className={styles.logoutButton} />
+          </div>
         ) : (
-          <button className={styles.loginButton} onClick={onLogin}>
-            로그인
-          </button>
+          <LoginButton className={styles.loginButton} />
         )}
       </div>
     </header>

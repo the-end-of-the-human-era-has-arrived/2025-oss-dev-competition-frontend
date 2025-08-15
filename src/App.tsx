@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatLog, { Message } from './components/ChatLog';
 import ChatInput from './components/ChatInput';
 import MindMap from './components/MindMap';
 import TopBar from './components/TopBar';
+import { useAuthStore } from './stores/authStore';
 import styles from './App.module.css';
 
 // 더미 출처 데이터
@@ -14,7 +15,43 @@ const sources = [
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, setUser } = useAuthStore();
+
+  // 페이지 로드 시 인증 상태 확인
+  useEffect(() => {
+    const checkInitialAuthStatus = async () => {
+      // URL 파라미터에서 인증 성공 여부 확인
+      const urlParams = new URLSearchParams(window.location.search);
+      const authSuccess = urlParams.get('auth');
+      
+      if (authSuccess === 'success') {
+        // URL에서 auth 파라미터 제거
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+
+      // 항상 백엔드 API로 인증 상태 확인 (sessionID 쿠키 기반)
+      try {
+        const response = await fetch('http://localhost:8080/api/session/status', {
+          method: 'GET',
+          credentials: 'include', // sessionID 쿠키 포함
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          if (userData.authenticated && userData.user_id) {
+            // 백엔드에서 user_id로 반환하므로 언더스코어 사용
+            setUser({ name: `사용자-${userData.user_id.toString().slice(0, 8)}` });
+          }
+        }
+      } catch (error) {
+        // 백엔드 API가 없거나 실패해도 계속 진행
+        console.log('인증 상태 확인 실패:', error);
+      }
+    };
+
+    checkInitialAuthStatus();
+  }, [setUser]);
 
   const handleSend = (text: string) => {
     setMessages(prev => [...prev, { sender: 'user', text }]);
@@ -25,7 +62,7 @@ const App: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <TopBar isLoggedIn={isLoggedIn} onLogin={() => setIsLoggedIn(true)} onLogout={() => setIsLoggedIn(false)} />
+      <TopBar />
       <div className={styles.topBarSpacer} />
       {isLoggedIn ? (
         <div className={styles.mainContent}>
