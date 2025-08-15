@@ -40,6 +40,12 @@
   margin-right: 80px;
 }
 
+.loggedInUser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .userName {
   font-size: 14px;
   color: #787774;
