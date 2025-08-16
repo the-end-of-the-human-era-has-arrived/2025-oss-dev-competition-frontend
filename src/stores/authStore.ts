@@ -4,10 +4,11 @@ interface AuthState {
   isLoggedIn: boolean;
   user: {
     name: string;
+    id?: string;
   } | null;
   login: () => Promise<void>;
   logout: () => void;
-  setUser: (user: { name: string }) => void;
+  setUser: (user: { name: string; id?: string }) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -27,7 +28,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoggedIn: false, user: null });
   },
   
-  setUser: (user: { name: string }) => {
+  setUser: (user: { name: string; id?: string }) => {
     set({ user, isLoggedIn: true });
   },
 }));

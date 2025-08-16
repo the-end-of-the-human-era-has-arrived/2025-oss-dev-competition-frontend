@@ -4,6 +4,7 @@ import ChatInput from './components/ChatInput';
 import MindMap from './components/MindMap';
 import TopBar from './components/TopBar';
 import { useAuthStore } from './stores/authStore';
+import { sendChatMessage, ChatApiError } from './services/chatApi';
 import styles from './App.module.css';
 
 // 더미 출처 데이터
@@ -15,7 +16,8 @@ const sources = [
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const { isLoggedIn, setUser } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const { isLoggedIn, setUser, user } = useAuthStore();
 
   // 페이지 로드 시 인증 상태 확인
   useEffect(() => {
@@ -41,7 +43,10 @@ const App: React.FC = () => {
           const userData = await response.json();
           if (userData.authenticated && userData.user_id) {
             // 백엔드에서 user_id로 반환하므로 언더스코어 사용
-            setUser({ name: `사용자-${userData.user_id.toString().slice(0, 8)}` });
+            setUser({ 
+              name: `사용자-${userData.user_id.toString().slice(0, 8)}`,
+              id: userData.user_id.toString()
+            });
           }
         }
       } catch (error) {
@@ -53,11 +58,34 @@ const App: React.FC = () => {
     checkInitialAuthStatus();
   }, [setUser]);
 
-  const handleSend = (text: string) => {
+  const handleSend = async (text: string) => {
+    // 사용자 메시지 즉시 추가
     setMessages(prev => [...prev, { sender: 'user', text }]);
-    setTimeout(() => {
-      setMessages(prev => [...prev, { sender: 'ai', text: text }]);
-    }, 500);
+    setIsLoading(true);
+
+    try {
+      // AI API 호출
+      const aiResponse = await sendChatMessage(text, user?.id || 'anonymous');
+      
+      // AI 응답 추가
+      setMessages(prev => [...prev, { sender: 'ai', text: aiResponse }]);
+    } catch (error) {
+      console.error('AI 채팅 오류:', error);
+      
+      let errorMessage = '죄송합니다. 응답을 생성하는 중 오류가 발생했습니다.';
+      
+      if (error instanceof ChatApiError) {
+        errorMessage = error.message;
+      }
+      
+      // 에러 메시지를 AI 응답으로 표시
+      setMessages(prev => [...prev, { 
+        sender: 'ai', 
+        text: `⚠️ ${errorMessage} 다시 시도해주세요.` 
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -71,9 +99,9 @@ const App: React.FC = () => {
             <div className={styles.chatHeader}>
               <h2 className={styles.chatTitle}>AI Agent Chat</h2>
             </div>
-            <ChatLog messages={messages} onClear={() => setMessages([])} />
+            <ChatLog messages={messages} onClear={() => setMessages([])} isLoading={isLoading} />
             <div className={styles.chatInputContainer}>
-              <ChatInput onSend={handleSend} />
+              <ChatInput onSend={handleSend} isLoading={isLoading} />
             </div>
           </div>
           {/* 마인드맵 영역: 우측에 수직 분리 */}

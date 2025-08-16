@@ -42,6 +42,102 @@
   color: #37352f;
 }
 
+/* 마크다운 콘텐츠 스타일 조정 */
+.markdownContent {
+  /* 마크다운 렌더러의 기본 스타일을 사용하되 말풍선에 맞게 조정 */
+}
+
+/* AI 메시지의 마크다운 요소들 */
+.messageBubbleAi .markdownContent h1,
+.messageBubbleAi .markdownContent h2,
+.messageBubbleAi .markdownContent h3 {
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+}
+
+.messageBubbleAi .markdownContent p {
+  margin: 0.3em 0;
+}
+
+.messageBubbleAi .markdownContent p:first-child {
+  margin-top: 0;
+}
+
+.messageBubbleAi .markdownContent p:last-child {
+  margin-bottom: 0;
+}
+
+.messageBubbleAi .markdownContent ul,
+.messageBubbleAi .markdownContent ol {
+  margin: 0.3em 0;
+}
+
+.messageBubbleAi .markdownContent pre {
+  margin: 0.5em 0;
+  font-size: 0.8em;
+}
+
+.messageBubbleAi .markdownContent blockquote {
+  margin: 0.5em 0;
+  background: rgba(46, 117, 204, 0.08);
+}
+
+.messageBubbleAi .markdownContent table {
+  font-size: 0.85em;
+}
+
+/* 사용자 메시지의 마크다운 스타일 */
+.userMarkdown {
+  color: #ffffff;
+}
+
+.messageBubble .userMarkdown h1,
+.messageBubble .userMarkdown h2,
+.messageBubble .userMarkdown h3 {
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.messageBubble .userMarkdown p {
+  margin: 0.3em 0;
+  color: #ffffff;
+}
+
+.messageBubble .userMarkdown p:first-child {
+  margin-top: 0;
+}
+
+.messageBubble .userMarkdown p:last-child {
+  margin-bottom: 0;
+}
+
+.messageBubble .userMarkdown code {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.messageBubble .userMarkdown pre {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.messageBubble .userMarkdown blockquote {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.messageBubble .userMarkdown a {
+  color: #ffffff;
+  text-decoration-color: rgba(255, 255, 255, 0.7);
+}
+
+.messageBubble .userMarkdown a:hover {
+  text-decoration-color: #ffffff;
+}
+
 .header {
   display: flex;
   justify-content: flex-end;
@@ -90,4 +186,58 @@
   line-height: 1.5;
   max-width: 400px;
   white-space: nowrap;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.loadingBubble {
+  background: #f7f6f3;
+  color: #787774;
+  border-radius: 8px;
+  padding: 8px 12px;
+  max-width: 70%;
+  min-width: auto;
+  width: fit-content;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.loadingDots {
+  display: flex;
+  gap: 4px;
+}
+
+.loadingDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #787774;
+  animation: loadingPulse 1.4s ease-in-out infinite both;
+}
+
+.loadingDot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loadingDot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes loadingPulse {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
 } 
