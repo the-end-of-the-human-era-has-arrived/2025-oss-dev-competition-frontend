@@ -1,0 +1,204 @@
+/* 마크다운 컨테이너 */
+.markdownContainer {
+  line-height: 1.6;
+  color: inherit;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 헤딩 스타일 */
+.h1 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 0.8em 0 0.4em 0;
+  color: inherit;
+  border-bottom: 1px solid #e1e5e9;
+  padding-bottom: 0.3em;
+}
+
+.h2 {
+  font-size: 1.3em;
+  font-weight: 600;
+  margin: 0.7em 0 0.3em 0;
+  color: inherit;
+}
+
+.h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0.6em 0 0.2em 0;
+  color: inherit;
+}
+
+/* 문단 스타일 */
+.paragraph {
+  margin: 0.5em 0;
+  line-height: 1.6;
+}
+
+/* 코드 스타일 */
+.inlineCode {
+  background: rgba(135, 131, 120, 0.15);
+  color: #eb5757;
+  border-radius: 3px;
+  padding: 0.2em 0.4em;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.codeBlockWrapper {
+  margin: 1em 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f8f8f8;
+  border: 1px solid #e1e5e9;
+}
+
+.codeLanguage {
+  background: #e1e5e9;
+  color: #64748b;
+  padding: 0.5em 1em;
+  font-size: 0.75em;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 1em;
+  background: #f8f8f8;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  font-size: 0.85em;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.codeBlock code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* 리스트 스타일 */
+.ul, .ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.li {
+  margin: 0.2em 0;
+  line-height: 1.5;
+}
+
+.ul .li {
+  list-style-type: disc;
+}
+
+.ol .li {
+  list-style-type: decimal;
+}
+
+/* 링크 스타일 */
+.link {
+  color: #2e75cc;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.link:hover {
+  color: #1e5aa8;
+  text-decoration-thickness: 2px;
+}
+
+/* 인용구 스타일 */
+.blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid #2e75cc;
+  background: rgba(46, 117, 204, 0.05);
+  font-style: italic;
+  color: #64748b;
+}
+
+.blockquote p {
+  margin: 0.2em 0;
+}
+
+/* 테이블 스타일 */
+.tableWrapper {
+  margin: 1em 0;
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid #e1e5e9;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.table th {
+  background: #f7f6f3;
+  font-weight: 600;
+  padding: 0.5em 1em;
+  text-align: left;
+  border-bottom: 2px solid #e1e5e9;
+}
+
+.table td {
+  padding: 0.5em 1em;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.table tr:hover {
+  background: rgba(46, 117, 204, 0.02);
+}
+
+/* 구분선 */
+.markdownContainer hr {
+  border: none;
+  border-top: 1px solid #e1e5e9;
+  margin: 1.5em 0;
+}
+
+/* 강조 텍스트 */
+.markdownContainer strong {
+  font-weight: 600;
+  color: inherit;
+}
+
+.markdownContainer em {
+  font-style: italic;
+  color: inherit;
+}
+
+/* 이미지 */
+.markdownContainer img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 0.5em 0;
+}
+
+/* 체크박스 리스트 */
+.markdownContainer input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+
+/* 첫 번째와 마지막 요소 마진 조정 */
+.markdownContainer > *:first-child {
+  margin-top: 0;
+}
+
+.markdownContainer > *:last-child {
+  margin-bottom: 0;
+}

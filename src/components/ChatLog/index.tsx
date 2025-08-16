@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
+import MarkdownRenderer from '../MarkdownRenderer';
 import styles from './ChatLog.module.css';
 
 type Message = {
@@ -9,11 +10,21 @@ type Message = {
 type ChatLogProps = {
   messages: Message[];
   onClear?: () => void;
+  isLoading?: boolean;
 };
 
-const ChatLog: React.FC<ChatLogProps> = ({ messages, onClear }) => {
+const ChatLog: React.FC<ChatLogProps> = ({ messages, onClear, isLoading = false }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 메시지나 로딩 상태가 변경될 때마다 스크롤을 맨 아래로 이동
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
   return (
-    <div className={styles.container}>
+    <div ref={containerRef} className={styles.container}>
       {messages.length > 0 && (
         <div className={styles.header}>
           <button 
@@ -41,10 +52,25 @@ const ChatLog: React.FC<ChatLogProps> = ({ messages, onClear }) => {
           <div
             className={`${styles.messageBubble} ${msg.sender === 'ai' ? styles.messageBubbleAi : ''}`}
           >
-            {msg.text}
+            <MarkdownRenderer 
+              content={msg.text} 
+              className={`${styles.markdownContent} ${msg.sender === 'user' ? styles.userMarkdown : ''}`} 
+            />
           </div>
         </div>
       ))}
+      {isLoading && (
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingBubble}>
+            AI가 응답을 생성하고 있습니다
+            <div className={styles.loadingDots}>
+              <div className={styles.loadingDot}></div>
+              <div className={styles.loadingDot}></div>
+              <div className={styles.loadingDot}></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

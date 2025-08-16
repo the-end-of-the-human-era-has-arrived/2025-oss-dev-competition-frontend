@@ -23,7 +23,10 @@ export const useAuthApi = () => {
         const userData = await response.json();
         if (userData.authenticated && userData.user_id) {
           // 백엔드에서 user_id로 반환하므로 언더스코어 사용
-          setUser({ name: `사용자-${userData.user_id.toString().slice(0, 8)}` });
+          setUser({ 
+            name: `사용자-${userData.user_id.toString().slice(0, 8)}`,
+            id: userData.user_id.toString()
+          });
           return true;
         }
       }
