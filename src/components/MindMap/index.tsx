@@ -2,13 +2,43 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import * as d3 from "d3-force";
 import styles from "./MindMap.module.css";
 
+// API 설정
+// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+
+// 서버에서 현재 사용자 정보를 가져오는 함수 (HttpOnly 쿠키 대응)
+const getCurrentUser = async (): Promise<string | null> => {
+  try {
+    const response = await fetch(`http://localhost:8080/api/session/status`, {
+      method: "GET",
+      credentials: "include", // HttpOnly 쿠키 포함
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      console.warn(`사용자 정보 조회 실패: ${response.status}`);
+      return null;
+    }
+
+    const userData = await response.json();
+    console.log("현재 사용자:", userData);
+
+    // 사용자 ID 반환 (응답 구조에 따라 조정 필요)
+    return userData.user_id || null;
+  } catch (error) {
+    console.error("사용자 정보 조회 오류:", error);
+    return null;
+  }
+};
+
 // 노드와 엣지의 타입 정의 (d3-force와 호환되도록 수정)
 interface Node extends d3.SimulationNodeDatum {
   id: string;
   x?: number;
   y?: number;
-  group: number;
-  title?: string;
+  notionPageId: string;
+  keyword?: string;
   fx?: number | null;
   fy?: number | null;
 }
@@ -25,19 +55,17 @@ interface MindMapData {
 
 // API에서 받은 데이터를 MindMap 형태로 변환하는 함수
 const convertApiDataToMindMap = (apiData: any): MindMapData => {
-  // API 응답 구조에 따라 수정 필요
-  // 현재는 예시 구조로 구현
   if (apiData && apiData.nodes && apiData.edges) {
-    const nodes = apiData.nodes.map((node: any, index: number) => ({
-      id: node.id || `node_${index}`,
-      group: node.group || 1,
-      title: node.title || node.name || node.id,
+    const nodes = apiData.nodes.map((node: any) => ({
+      id: node.id,
+      notionPageId: node.notion_page_id,
+      keyword: node.keyword,
       // x, y는 d3-force가 자동으로 계산하므로 제거
     }));
 
     const edges = apiData.edges.map((edge: any) => ({
-      source: edge.from || edge.source,
-      target: edge.to || edge.target,
+      source: edge.keyword1,
+      target: edge.keyword2,
     }));
 
     return { nodes, edges };
@@ -50,39 +78,61 @@ const convertApiDataToMindMap = (apiData: any): MindMapData => {
 // MindMap API 호출 함수
 const fetchMindMapData = async (): Promise<MindMapData> => {
   try {
-    // TODO: 실제 API 엔드포인트로 변경 필요
-    // const response = await fetch('/api/mindmap');
-    // const data = await response.json();
-    // return convertApiDataToMindMap(data);
+    // HttpOnly 쿠키 때문에 서버에서 사용자 정보 조회
+    const userId = await getCurrentUser();
 
-    // 임시 더미 데이터 (실제 API 연동 전까지 사용)
-    const dummyData = {
-      nodes: [
-        { id: "central", group: 1, title: "중심 아이디어" },
-        { id: "concept1", group: 1, title: "하위 개념 1" },
-        { id: "concept2", group: 1, title: "하위 개념 2" },
-        { id: "concept3", group: 1, title: "하위 개념 3" },
-        { id: "related1", group: 2, title: "관련 주제 A" },
-        { id: "related2", group: 2, title: "관련 주제 B" },
-        { id: "detail1", group: 3, title: "세부 사항 1" },
-        { id: "detail2", group: 3, title: "세부 사항 2" },
-      ],
-      edges: [
-        { from: "central", to: "concept1" },
-        { from: "central", to: "concept2" },
-        { from: "central", to: "concept3" },
-        { from: "concept1", to: "detail1" },
-        { from: "concept2", to: "detail2" },
-        { from: "related1", to: "related2" },
-        { from: "concept3", to: "related1" },
-      ],
-    };
+    if (!userId) {
+      console.warn("사용자 정보를 가져올 수 없습니다. 더미 데이터를 사용합니다.");
+      return getDummyData();
+    }
 
-    return convertApiDataToMindMap(dummyData);
+    // 실제 API 호출
+    const response = await fetch(`http://localhost:8080/api/users/${userId}/mindmap`, {
+      method: "GET",
+      credentials: "include", // 쿠키 포함
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API 호출 실패: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return convertApiDataToMindMap(data);
   } catch (error) {
     console.error("MindMap 데이터 로딩 실패:", error);
-    return { nodes: [], edges: [] };
+    console.log("더미 데이터를 사용합니다.");
+    return getDummyData();
   }
+};
+
+// 더미 데이터 생성 함수 (API 연동 실패 시 폴백용)
+const getDummyData = (): MindMapData => {
+  const dummyApiData = {
+    nodes: [
+      { id: "central", notion_page_id: "page_001", keyword: "중심 아이디어" },
+      { id: "concept1", notion_page_id: "page_002", keyword: "하위 개념 1" },
+      { id: "concept2", notion_page_id: "page_003", keyword: "하위 개념 2" },
+      { id: "concept3", notion_page_id: "page_004", keyword: "하위 개념 3" },
+      { id: "related1", notion_page_id: "page_005", keyword: "관련 주제 A" },
+      { id: "related2", notion_page_id: "page_006", keyword: "관련 주제 B" },
+      { id: "detail1", notion_page_id: "page_007", keyword: "세부 사항 1" },
+      { id: "detail2", notion_page_id: "page_008", keyword: "세부 사항 2" },
+    ],
+    edges: [
+      { keyword1: "central", keyword2: "concept1" },
+      { keyword1: "central", keyword2: "concept2" },
+      { keyword1: "central", keyword2: "concept3" },
+      { keyword1: "concept1", keyword2: "detail1" },
+      { keyword1: "concept2", keyword2: "detail2" },
+      { keyword1: "related1", keyword2: "related2" },
+      { keyword1: "concept3", keyword2: "related1" },
+    ],
+  };
+
+  return convertApiDataToMindMap(dummyApiData);
 };
 
 const MindMap: React.FC = () => {
@@ -504,11 +554,11 @@ const MindMap: React.FC = () => {
                     handleNodeMouseDown(e as any, node.id);
                   }}
                 >
-                  <title>{node.title || node.id}</title>
+                  <title>{node.keyword || node.id}</title>
                 </circle>
 
                 {/* 노드 라벨 */}
-                {node.title && (
+                {node.keyword && (
                   <text
                     x={node.x}
                     y={node.y + 25}
@@ -518,7 +568,7 @@ const MindMap: React.FC = () => {
                     fill="#37352f"
                     style={{ pointerEvents: "none" }}
                   >
-                    {node.title}
+                    {node.keyword}
                   </text>
                 )}
               </g>
