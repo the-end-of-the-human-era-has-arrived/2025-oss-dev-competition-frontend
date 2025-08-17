@@ -26,6 +26,7 @@ export const sendChatMessage = async (message: string, userId: string): Promise<
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // sessionID 쿠키 포함
       body: JSON.stringify({
         message,
         user_id: userId,
