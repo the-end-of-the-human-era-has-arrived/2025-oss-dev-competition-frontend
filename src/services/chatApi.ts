@@ -1,7 +1,13 @@
 // AI 채팅 API 서비스
+interface ChatMessage {
+  type: 'user' | 'ai';
+  content: string;
+}
+
 interface ChatRequest {
   message: string;
   user_id: string;
+  chat_history?: ChatMessage[];
 }
 
 interface ChatResponse {
@@ -16,11 +22,47 @@ class ChatApiError extends Error {
   }
 }
 
-export const sendChatMessage = async (message: string, userId: string): Promise<string> => {
+// 대화 기록을 지정된 형식으로 포맷팅하는 함수
+const formatChatHistory = (chatHistory: ChatMessage[]): string => {
+  if (!chatHistory || chatHistory.length === 0) {
+    return '';
+  }
+
+  const formattedHistory = chatHistory
+    .map(msg => {
+      if (msg.type === 'user') {
+        return `- 사용자 질문: ${msg.content}`;
+      } else {
+        return `- AI 답변: ${msg.content}`;
+      }
+    })
+    .join('\n');
+
+  return `[이전까지의 대화 기록]\n${formattedHistory}\n\n`;
+};
+
+// 시스템 프롬프트
+const SYSTEM_PROMPT = `당신은 아래의 규칙을 무조건 따라야합니다.
+
+1. 이전까지의 대화 기록은 당신이 무슨 맥락으로 이야기중인지 참고하는 용도입니다.
+
+2. 대화 내용은 [이전까지의 대화 기록], [현재 사용자의 질문] 파트로 나뉩니다. 당신은 현재 사용자의 질문에 대한 내용을 작성해야합니다.
+
+---`;
+
+export const sendChatMessage = async (
+  message: string, 
+  userId: string, 
+  chatHistory?: ChatMessage[]
+): Promise<string> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
 
   try {
+    // 대화 기록과 현재 질문을 포맷팅
+    const formattedChatHistory = formatChatHistory(chatHistory || []);
+    const formattedMessage = `${SYSTEM_PROMPT}\n\n${formattedChatHistory}[현재 사용자의 질문]\n- 사용자 질문: ${message}`;
+
     const response = await fetch('http://localhost:8081/api/chat', {
       method: 'POST',
       headers: {
@@ -28,8 +70,9 @@ export const sendChatMessage = async (message: string, userId: string): Promise<
       },
       credentials: 'include', // sessionID 쿠키 포함
       body: JSON.stringify({
-        message,
+        message: formattedMessage,
         user_id: userId,
+        chat_history: chatHistory,
       } as ChatRequest),
       signal: controller.signal,
     });
@@ -70,4 +113,4 @@ export const sendChatMessage = async (message: string, userId: string): Promise<
   }
 };
 
-export { ChatApiError };
+export { ChatApiError, type ChatMessage };
