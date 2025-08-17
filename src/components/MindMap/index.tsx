@@ -1,36 +1,10 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import * as d3 from "d3-force";
 import styles from "./MindMap.module.css";
+import { useAuthStore } from "../../stores/authStore";
 
 // API 설정
-// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
-
-// 서버에서 현재 사용자 정보를 가져오는 함수 (HttpOnly 쿠키 대응)
-const getCurrentUser = async (): Promise<string | null> => {
-  try {
-    const response = await fetch(`http://localhost:8080/api/session/status`, {
-      method: "GET",
-      credentials: "include", // HttpOnly 쿠키 포함
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      console.warn(`사용자 정보 조회 실패: ${response.status}`);
-      return null;
-    }
-
-    const userData = await response.json();
-    console.log("현재 사용자:", userData);
-
-    // 사용자 ID 반환 (응답 구조에 따라 조정 필요)
-    return userData.user_id || null;
-  } catch (error) {
-    console.error("사용자 정보 조회 오류:", error);
-    return null;
-  }
-};
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 // 노드와 엣지의 타입 정의 (d3-force와 호환되도록 수정)
 interface Node extends d3.SimulationNodeDatum {
@@ -76,18 +50,15 @@ const convertApiDataToMindMap = (apiData: any): MindMapData => {
 };
 
 // MindMap API 호출 함수
-const fetchMindMapData = async (): Promise<MindMapData> => {
+const fetchMindMapData = async (userId?: string): Promise<MindMapData> => {
   try {
-    // HttpOnly 쿠키 때문에 서버에서 사용자 정보 조회
-    const userId = await getCurrentUser();
-
     if (!userId) {
-      console.warn("사용자 정보를 가져올 수 없습니다. 더미 데이터를 사용합니다.");
+      console.warn("사용자 ID가 없습니다. 더미 데이터를 사용합니다.");
       return getDummyData();
     }
 
     // 실제 API 호출
-    const response = await fetch(`http://localhost:8080/api/users/${userId}/mindmap`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/mindmap`, {
       method: "GET",
       credentials: "include", // 쿠키 포함
       headers: {
@@ -136,6 +107,7 @@ const getDummyData = (): MindMapData => {
 };
 
 const MindMap: React.FC = () => {
+  const { user } = useAuthStore();
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -214,13 +186,13 @@ const MindMap: React.FC = () => {
   useEffect(() => {
     const loadMindMapData = async () => {
       setLoading(true);
-      const data = await fetchMindMapData();
+      const data = await fetchMindMapData(user?.id);
       setMindMapData(data);
       setLoading(false);
     };
 
     loadMindMapData();
-  }, []);
+  }, [user?.id]);
 
   // d3-force 시뮬레이션 설정
   useEffect(() => {
