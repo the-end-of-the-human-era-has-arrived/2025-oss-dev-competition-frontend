@@ -4,7 +4,7 @@ import ChatInput from './components/ChatInput';
 import MindMap from './components/MindMap';
 import TopBar from './components/TopBar';
 import { useAuthStore } from './stores/authStore';
-import { sendChatMessage, ChatApiError } from './services/chatApi';
+import { sendChatMessage, ChatApiError, ChatMessage } from './services/chatApi';
 import styles from './App.module.css';
 
 // 더미 출처 데이터
@@ -13,6 +13,14 @@ const sources = [
   { id: 2, title: '기술 스택 문서', url: 'https://notion.so/tech-stack' },
   { id: 3, title: 'API 설계 문서', url: 'https://notion.so/api-design' },
 ];
+
+// Message 타입을 ChatMessage 타입으로 변환하는 함수
+const convertToChatMessages = (messages: Message[]): ChatMessage[] => {
+  return messages.map(msg => ({
+    type: msg.sender === 'user' ? 'user' : 'ai',
+    content: msg.text
+  }));
+};
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -59,13 +67,16 @@ const App: React.FC = () => {
   }, [setUser]);
 
   const handleSend = async (text: string) => {
+    // 현재 채팅창의 모든 대화 기록을 ChatMessage 형식으로 변환
+    const chatHistory = convertToChatMessages(messages);
+    
     // 사용자 메시지 즉시 추가
     setMessages(prev => [...prev, { sender: 'user', text }]);
     setIsLoading(true);
 
     try {
-      // AI API 호출
-      const aiResponse = await sendChatMessage(text, user?.id || 'anonymous');
+      // AI API 호출 (현재 채팅창의 모든 대화 기록 포함)
+      const aiResponse = await sendChatMessage(text, user?.id || 'anonymous', chatHistory);
       
       // AI 응답 추가
       setMessages(prev => [...prev, { sender: 'ai', text: aiResponse }]);
