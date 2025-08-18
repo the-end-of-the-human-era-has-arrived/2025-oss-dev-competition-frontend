@@ -7,12 +7,11 @@ import { useAuthStore } from './stores/authStore';
 import { sendChatMessage, ChatApiError, ChatMessage } from './services/chatApi';
 import styles from './App.module.css';
 
-// 더미 출처 데이터
-const sources = [
-  { id: 1, title: '프로젝트 기획서', url: 'https://notion.so/project-plan' },
-  { id: 2, title: '기술 스택 문서', url: 'https://notion.so/tech-stack' },
-  { id: 3, title: 'API 설계 문서', url: 'https://notion.so/api-design' },
-];
+type Source = {
+  id: string;
+  title: string;
+  url: string;
+};
 
 // Message 타입을 ChatMessage 타입으로 변환하는 함수
 const convertToChatMessages = (messages: Message[]): ChatMessage[] => {
@@ -26,6 +25,61 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { isLoggedIn, setUser, user } = useAuthStore();
+  const [sources, setSources] = useState<Source[]>([]);
+
+  // AI 응답 텍스트에서 마크다운 링크와 일반 URL을 추출해 출처 목록 생성
+  const extractSourcesFromMarkdown = (text: string): Source[] => {
+    const results: Source[] = [];
+    const seen = new Set<string>();
+
+    // [title](url) 형태의 마크다운 링크 추출
+    const mdLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    let match: RegExpExecArray | null;
+    while ((match = mdLinkRegex.exec(text)) !== null) {
+      const title = (match[1] || '').trim();
+      const url = (match[2] || '').trim();
+      if (url && !seen.has(url)) {
+        seen.add(url);
+        results.push({ id: url, title: title || url, url });
+      }
+    }
+
+    // 일반 URL도 보조적으로 추출 (중복은 제거)
+    const rawUrlRegex = /(https?:\/\/[^\s)]+)/g;
+    while ((match = rawUrlRegex.exec(text)) !== null) {
+      const url = (match[1] || '').trim();
+      if (url && !seen.has(url)) {
+        seen.add(url);
+        results.push({ id: url, title: url, url });
+      }
+    }
+
+    return results;
+  };
+
+  // AI 응답 내 sources-json 코드펜스를 우선 파싱하여 출처를 추출하고, 본문에서 제거해 반환
+  const parseSourcesJsonBlock = (text: string): { body: string; sources: Source[] } => {
+    // ```sources-json\n ... \n```
+    const fenceRegex = /```sources-json\n([\s\S]*?)\n```/i;
+    const m = fenceRegex.exec(text);
+    if (!m) {
+      return { body: text, sources: [] };
+    }
+    const jsonRaw = m[1];
+    try {
+      const arr = JSON.parse(jsonRaw);
+      const parsed: Source[] = Array.isArray(arr)
+        ? arr
+            .filter((x: any) => x && typeof x.url === 'string')
+            .map((x: any) => ({ id: x.url, title: (x.title || x.url) as string, url: x.url as string }))
+        : [];
+      const body = text.replace(fenceRegex, '').trim();
+      return { body, sources: parsed };
+    } catch {
+      // JSON 파싱 실패 시, 본문만 제거하지 않고 그대로 두고, 출처는 없음
+      return { body: text.replace(fenceRegex, '').trim(), sources: [] };
+    }
+  };
 
   // 페이지 로드 시 인증 상태 확인
   useEffect(() => {
@@ -78,8 +132,19 @@ const App: React.FC = () => {
       // AI API 호출 (현재 채팅창의 모든 대화 기록 포함)
       const aiResponse = await sendChatMessage(text, user?.id || 'anonymous', chatHistory);
       
-      // AI 응답 추가
-      setMessages(prev => [...prev, { sender: 'ai', text: aiResponse }]);
+      // 로깅: 화면에 찍히기 전 AI 원문 응답 출력
+      console.log("AI raw response (before render):", aiResponse);
+      // 1) sources-json 코드펜스 우선 파싱
+      const { body, sources: parsedSources } = parseSourcesJsonBlock(aiResponse);
+      if (parsedSources.length > 0) {
+        setSources(parsedSources);
+      } else {
+        // 2) 없으면 마크다운/URL 백업 추출
+        const fallback = extractSourcesFromMarkdown(aiResponse);
+        setSources(fallback);
+      }
+      // AI 응답 추가 (sources-json 블록은 제거된 본문 사용)
+      setMessages(prev => [...prev, { sender: 'ai', text: body }]);
     } catch (error) {
       console.error('AI 채팅 오류:', error);
       
@@ -130,18 +195,26 @@ const App: React.FC = () => {
                 <h3 className={styles.sourcesTitle}>📚 참고 출처</h3>
               </div>
               <div className={styles.sourcesList}>
-                {sources.map(source => (
-                  <div key={source.id} className={styles.sourceItem}>
-                    <a 
-                      href={source.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className={styles.sourceLink}
-                    >
-                      {source.title}
-                    </a>
+                {sources.length === 0 ? (
+                  <div className={styles.sourceItem}>
+                    <span className={styles.sourceLink} style={{ background: 'transparent', border: 'none', color: '#787774' }}>
+                      참고한 Notion 페이지가 있다면 이곳에 표시됩니다.
+                    </span>
                   </div>
-                ))}
+                ) : (
+                  sources.map(source => (
+                    <div key={source.id} className={styles.sourceItem}>
+                      <a 
+                        href={source.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={styles.sourceLink}
+                      >
+                        {source.title}
+                      </a>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
