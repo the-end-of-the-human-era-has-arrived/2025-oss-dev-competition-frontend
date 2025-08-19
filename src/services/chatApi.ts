@@ -1,3 +1,5 @@
+import { createSystemInitPrompt } from '../prompts';
+
 // AI 채팅 API 서비스
 interface ChatMessage {
   type: 'user' | 'ai';
@@ -84,7 +86,7 @@ export const sendChatMessage = async (
   chatHistory?: ChatMessage[]
 ): Promise<string> => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
+  const timeoutId = setTimeout(() => controller.abort(), 300000); // 300초 타임아웃
 
   try {
     // 대화 기록과 현재 질문을 포맷팅
@@ -138,6 +140,65 @@ export const sendChatMessage = async (
     }
     
     throw new ChatApiError('알 수 없는 오류가 발생했습니다.');
+  }
+};
+
+
+// 백그라운드 시스템 초기화 함수 (사용자에게 보이지 않음)
+export const initializeUserEnvironment = async (userId: string): Promise<boolean> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000000); // 10분 타임아웃 (시스템 초기화용)
+
+  try {
+    console.log(`[System Init] 사용자 ${userId}의 환경 초기화 시작...`);
+    
+    // 템플릿 함수를 사용하여 시스템 Prompt 생성
+    const systemPrompt = createSystemInitPrompt(userId);
+
+    const response = await fetch('http://localhost:8081/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // sessionID 쿠키 포함
+      body: JSON.stringify({
+        message: systemPrompt,
+        user_id: userId,
+      } as ChatRequest),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      console.warn(`[System Init] 초기화 API 호출 실패: ${response.status} ${response.statusText}`);
+      return false;
+    }
+
+    const data: ChatResponse = await response.json();
+    
+    if (data.status !== 'success') {
+      console.warn('[System Init] 초기화 처리 중 오류 발생');
+      return false;
+    }
+
+    console.log(`[System Init] 사용자 ${userId} 환경 초기화 완료`);
+    console.log('[System Init] 응답:', data.response);
+    return true;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        console.warn('[System Init] 초기화 시간 초과 (3분 제한)');
+      } else {
+        console.error('[System Init] 초기화 오류:', error.message);
+      }
+    } else {
+      console.error('[System Init] 알 수 없는 초기화 오류');
+    }
+    
+    return false;
   }
 };
 
