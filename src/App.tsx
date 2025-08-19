@@ -275,7 +275,7 @@ const App: React.FC = () => {
             <div className={styles.mindmapCard}>
               <div className={styles.mindmapTitle}></div>
               <div className={styles.mindmapContent}>
-                <MindMap />
+                <MindMap systemInitialized={systemInitialized} />
               </div>
             </div>
             {/* 출처 카드 (1/3) */}

@@ -30,16 +30,15 @@ interface MindMapData {
 // API에서 받은 데이터를 MindMap 형태로 변환하는 함수
 const convertApiDataToMindMap = (apiData: any): MindMapData => {
   if (apiData && apiData.nodes && apiData.edges) {
-    const nodes = apiData.nodes.map((node: any) => ({
-      id: node.id,
+    const nodes = apiData.nodes.map((node: any, index: number) => ({
+      id: node.id || `node_${index}`,
       notionPageId: node.notion_page_id,
       keyword: node.keyword,
-      // x, y는 d3-force가 자동으로 계산하므로 제거
     }));
 
     const edges = apiData.edges.map((edge: any) => ({
-      source: edge.keyword1,
-      target: edge.keyword2,
+      source: edge.keyword1 || edge.source,
+      target: edge.keyword2 || edge.target,
     }));
 
     return { nodes, edges };
@@ -106,8 +105,13 @@ const getDummyData = (): MindMapData => {
   return convertApiDataToMindMap(dummyApiData);
 };
 
-const MindMap: React.FC = () => {
+interface MindMapProps {
+  systemInitialized?: boolean;
+}
+
+const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
   const { user } = useAuthStore();
+  const [lastSystemInitTime, setLastSystemInitTime] = useState<number>(0);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -182,17 +186,37 @@ const MindMap: React.FC = () => {
     [MIN_ZOOM, MAX_ZOOM]
   );
 
-  // MindMap 데이터 로딩
-  useEffect(() => {
-    const loadMindMapData = async () => {
-      setLoading(true);
-      const data = await fetchMindMapData(user?.id);
-      setMindMapData(data);
-      setLoading(false);
-    };
-
-    loadMindMapData();
+  // MindMap 데이터 로딩 함수
+  const loadMindMapData = useCallback(async () => {
+    setLoading(true);
+    const data = await fetchMindMapData(user?.id);
+    setMindMapData(data);
+    setLoading(false);
   }, [user?.id]);
+
+  // MindMap 데이터 새로고침 함수
+  const refreshMindMapData = useCallback(() => {
+    loadMindMapData();
+  }, [loadMindMapData]);
+
+  // 초기 데이터 로딩
+  useEffect(() => {
+    loadMindMapData();
+  }, [loadMindMapData]);
+
+  // 시스템 초기화 완료 시 자동 새로고침
+  useEffect(() => {
+    if (systemInitialized && user?.id) {
+      const currentTime = Date.now();
+      // 중복 새로고침 방지 (5초 이내 중복 실행 방지)
+      if (currentTime - lastSystemInitTime > 5000) {
+        setTimeout(() => {
+          refreshMindMapData();
+          setLastSystemInitTime(currentTime);
+        }, 2000); // 2초 후 새로고침 (백엔드 처리 완료 대기)
+      }
+    }
+  }, [systemInitialized, user?.id, refreshMindMapData, lastSystemInitTime]);
 
   // d3-force 시뮬레이션 설정
   useEffect(() => {
@@ -436,24 +460,47 @@ const MindMap: React.FC = () => {
 
   if (mindMapData.nodes.length === 0) {
     return (
-      <div className={styles.container}>
-        <div className={styles.empty}>표시할 마인드맵 데이터가 없습니다.</div>
+      <div className={styles.mindmapWrapper}>
+        {/* 새로고침 버튼 */}
+        <button 
+          className={styles.refreshButton} 
+          onClick={refreshMindMapData}
+          disabled={loading}
+          title="마인드맵 새로고침"
+        >
+          {loading ? '⏳' : '🔄'}
+        </button>
+        
+        <div className={styles.container}>
+          <div className={styles.empty}>표시할 마인드맵 데이터가 없습니다.</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={styles.container}
-      onWheel={handleWheel}
-      onMouseDown={draggedNode ? undefined : handleMouseDown}
-      onMouseMove={draggedNode ? handleNodeMouseMove : handleMouseMove}
-      onMouseUp={draggedNode ? handleNodeMouseUp : handleMouseUp}
-      onMouseLeave={draggedNode ? handleNodeMouseUp : handleMouseUp}
-      onDoubleClick={handleDoubleClick}
-      style={{ cursor: isDragging ? "grabbing" : "grab" }}
-    >
+    <div className={styles.mindmapWrapper}>
+      {/* 새로고침 버튼 */}
+      <button 
+        className={styles.refreshButton} 
+        onClick={refreshMindMapData}
+        disabled={loading}
+        title="마인드맵 새로고침"
+      >
+        {loading ? '⏳' : '🔄'}
+      </button>
+      
+      <div
+        ref={containerRef}
+        className={styles.container}
+        onWheel={handleWheel}
+        onMouseDown={draggedNode ? undefined : handleMouseDown}
+        onMouseMove={draggedNode ? handleNodeMouseMove : handleMouseMove}
+        onMouseUp={draggedNode ? handleNodeMouseUp : handleMouseUp}
+        onMouseLeave={draggedNode ? handleNodeMouseUp : handleMouseUp}
+        onDoubleClick={handleDoubleClick}
+        style={{ cursor: isDragging ? "grabbing" : "grab" }}
+      >
       <div
         className={styles.zoomContainer}
         style={{
@@ -575,6 +622,7 @@ const MindMap: React.FC = () => {
           ⌂
         </button>
       </div>
+    </div>
     </div>
   );
 };
