@@ -358,14 +358,40 @@ const App: React.FC = () => {
               <div className={`${styles.demoCard} ${styles.demoChatCard}`}>
                 <div className={styles.demoCardHeader}>채팅 미리보기</div>
                 <div className={styles.demoChatReal}>
-                  <ChatLog
-                    hideControls
-                    isLoading={false}
-                    messages={[
-                      { sender: "user", text: "OKR 작성 베스트 프랙티스 알려줘. 기존에 정리한 문서가 있으면 함께 참고해줘." },
-                      { sender: "ai", text: "OKR은 1) 야심차되 현실적, 2) 측정 가능한 핵심지표, 3) 분기-월 단위 검토가 핵심입니다.\n다음 문서를 바탕으로 팀/개인 예시를 정리했어요." },
-                    ]}
-                  />
+                  <div className={styles.chatPreview}>
+                    <div className={`${styles.chatPreviewRow} ${styles.chatPreviewRowUser}`}>
+                      <div className={styles.chatPreviewBubbleUser}>
+                        OKR 작성 베스트 프랙티스 알려줘. 기존에 정리한 문서가 있으면 함께 참고해줘.
+                      </div>
+                    </div>
+                    <div className={`${styles.chatPreviewRow} ${styles.chatPreviewRowAi}`}>
+                      <div className={styles.chatPreviewBubbleAi}>
+                        <p style={{ marginTop: 0 }}>OKR은 목표(Objective)와 핵심결과(Key Results)로 구성되며, 팀과 개인의 정렬과 성과 측정을 동시에 달성하는 경량 프레임워크입니다. 다음 원칙을 지키면 품질이 크게 향상됩니다.</p>
+                        <ul>
+                          <li>Objective: 고객 가치 중심의 명확한 방향(정성적)</li>
+                          <li>Key Results: 기준선→목표치→기한이 있는 정량 지표</li>
+                        </ul>
+                        <p>팀 예시</p>
+                        <ul>
+                          <li>O: 온보딩 경험 개선</li>
+                          <li>KR1: 첫 주 핵심기능 체험률 25%→40%</li>
+                          <li>KR2: 가입→활성 전환율 +15pp</li>
+                        </ul>
+                        <p>개인 예시</p>
+                        <ul>
+                          <li>O: 실험 주도 역량 강화</li>
+                          <li>KR1: 분기 A/B 4건 설계·분석</li>
+                          <li>KR2: 통계 검정 템플릿 1건 배포</li>
+                        </ul>
+                        <p>작성 팁</p>
+                        <ul style={{ marginBottom: 0 }}>
+                          <li>KR엔 모호한 표현 대신 수치와 기간을 명시합니다(예: “+15pp, 3월 말”)</li>
+                          <li>팀 KR과 개인 KR이 상·하향으로 연결되는지 점검합니다</li>
+                          <li>월간 체크인으로 진행률을 숫자로 업데이트하고, 분기 말 회고에서 측정/학습을 문서화합니다</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className={`${styles.demoCard} ${styles.demoMindmapCard}`}>

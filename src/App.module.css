@@ -310,8 +310,9 @@
 }
 
 .demoChatReal {
-  height: 360px;
+  height: 300px;
   border-top: 1px solid #f0f0ee;
+  padding: 12px 12px 0 12px;
 }
 
 .demoBubble {
@@ -366,6 +367,58 @@
 
 .demoMindmapReal {
   height: 240px;
+}
+
+.chatPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chatPreviewRow {
+  display: flex;
+}
+
+.chatPreviewRowUser {
+  justify-content: flex-end;
+}
+
+.chatPreviewRowAi {
+  justify-content: flex-start;
+}
+
+.chatPreviewBubbleUser {
+  background: #2e75cc;
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 6px 10px;
+  max-width: 78%;
+  font-size: 13px;
+  line-height: 2.5;
+}
+
+.chatPreviewBubbleAi {
+  background: #f7f6f3;
+  color: #37352f;
+  border: 1px solid #e1e5e9;
+  border-radius: 10px;
+  padding: 6px 10px;
+  max-width: 86%;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.chatPreviewBubbleAi p {
+  margin: 0.15em 0;
+}
+
+.chatPreviewBubbleAi ul {
+  margin: 0.25em 0 0.25em 1em;
+  padding-left: 1em;
+}
+
+.chatPreviewBubbleAi li {
+  margin: 0.1em 0;
 }
 
 .nodeCenter {

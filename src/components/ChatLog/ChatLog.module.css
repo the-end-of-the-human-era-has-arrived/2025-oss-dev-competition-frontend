@@ -8,6 +8,10 @@
   gap: 12px;
 }
 
+.compact {
+  gap: 8px;
+}
+
 .messageContainer {
   display: flex;
   justify-content: flex-end;
@@ -23,7 +27,7 @@
   background: #2e75cc;
   color: #ffffff;
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   max-width: 70%;
   min-width: auto;
   width: fit-content;
@@ -31,8 +35,8 @@
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
-  line-height: 1.4;
-  font-size: 14px;
+  line-height: 1.2;
+  font-size: 13px;
   hyphens: auto;
   overflow: hidden;
 }
@@ -56,7 +60,7 @@
 }
 
 .messageBubbleAi .markdownContent p {
-  margin: 0.3em 0;
+  margin: 0.15em 0;
 }
 
 .messageBubbleAi .markdownContent p:first-child {

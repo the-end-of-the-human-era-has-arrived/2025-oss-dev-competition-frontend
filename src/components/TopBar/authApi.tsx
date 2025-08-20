@@ -53,7 +53,17 @@ export const LoginButton: React.FC<{ className?: string }> = ({ className }) => 
   const { handleLogin } = useAuthApi();
 
   return (
-    <button className={className} onClick={handleLogin}>
+    <button className={className} onClick={handleLogin} aria-label="로그인">
+      <img
+        alt="노션 아이콘"
+        width={16}
+        height={16}
+        src="/notion.png"
+        style={{ marginRight: 6, verticalAlign: '-2px' }}
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = '/favicon.png';
+        }}
+      />
       로그인
     </button>
   );
