@@ -4,6 +4,7 @@ import ChatInput from "./components/ChatInput";
 import MindMap from "./components/MindMap";
 import TopBar from "./components/TopBar";
 import { useAuthStore } from "./stores/authStore";
+import { LoginButton } from "./components/TopBar/authApi";
 import {
   sendChatMessage,
   ChatApiError,
@@ -313,20 +314,132 @@ const App: React.FC = () => {
         </div>
       ) : (
         <div className={styles.introContent}>
-          <div className={styles.introCard}>
-            <h1 className={styles.introTitle}>Notion Agent</h1>
-            <p className={styles.introDescription}>AI 기반 마인드맵 생성 및 채팅 서비스</p>
-            <div className={styles.introFeatures}>
-              <div className={styles.feature}>
-                <span className={styles.featureIcon}>🧠</span>
-                <span className={styles.featureText}>지능형 마인드맵 생성</span>
+          <section className={styles.heroSection}>
+            <h1 className={styles.heroTitle}>Notion Agent</h1>
+            <p className={styles.heroDescription}>
+              내가 작성한 내용에 대해 질문하면 내 노션의 모든 관련 내용을 정리해 답하고,
+              근거가 된 노션 페이지의 출처를 즉시 확인할 수 있어요. 글에서 추출된 키워드는 마인드맵으로
+              한눈에 파악할 수 있습니다.
+            </p>
+            <div className={styles.heroCtas}>
+              <LoginButton className={styles.primaryButton} />
+              <a href="#features" className={styles.secondaryButton}>기능 살펴보기</a>
+            </div>
+          </section>
+
+          <section id="features" className={styles.featuresSection}>
+            <div className={styles.featuresGrid}>
+              <div className={styles.featureCard}>
+                <div className={styles.featureCardIcon}>💬</div>
+                <h3 className={styles.featureCardTitle}>주제별 통합 답변</h3>
+                <p className={styles.featureCardDesc}>
+                  노션 전반에서 해당 주제와 관련된 내용을 모아 요약하고 정리해 드립니다.
+                </p>
               </div>
-              <div className={styles.feature}>
-                <span className={styles.featureIcon}>💬</span>
-                <span className={styles.featureText}>AI 채팅 어시스턴트</span>
+              <div className={styles.featureCard}>
+                <div className={styles.featureCardIcon}>🧠</div>
+                <h3 className={styles.featureCardTitle}>키워드 마인드맵</h3>
+                <p className={styles.featureCardDesc}>
+                  문서에서 추출된 핵심 개념들이 시각적으로 연결되어 흐름을 빠르게 이해할 수 있어요.
+                </p>
+              </div>
+              <div className={styles.featureCard}>
+                <div className={styles.featureCardIcon}>🔗</div>
+                <h3 className={styles.featureCardTitle}>출처 링크 제공</h3>
+                <p className={styles.featureCardDesc}>
+                  LLM 응답에 활용된 노션 페이지를 출처로 보여주며, 한 클릭으로 원문으로 이동합니다.
+                </p>
               </div>
             </div>
-          </div>
+          </section>
+
+          <section className={styles.demoSection}>
+            <div className={styles.demoGrid}>
+              <div className={`${styles.demoCard} ${styles.demoChatCard}`}>
+                <div className={styles.demoCardHeader}>채팅 미리보기</div>
+                <div className={styles.demoChatReal}>
+                  <div className={styles.chatPreview}>
+                    <div className={`${styles.chatPreviewRow} ${styles.chatPreviewRowUser}`}>
+                      <div className={styles.chatPreviewBubbleUser}>
+                        OKR 작성 베스트 프랙티스 알려줘. 기존에 정리한 문서가 있으면 함께 참고해줘.
+                      </div>
+                    </div>
+                    <div className={`${styles.chatPreviewRow} ${styles.chatPreviewRowAi}`}>
+                      <div className={styles.chatPreviewBubbleAi}>
+                        <p style={{ marginTop: 0 }}>OKR은 목표(Objective)와 핵심결과(Key Results)로 구성되며, 팀과 개인의 정렬과 성과 측정을 동시에 달성하는 경량 프레임워크입니다. 다음 원칙을 지키면 품질이 크게 향상됩니다.</p>
+                        <ul>
+                          <li>Objective: 고객 가치 중심의 명확한 방향(정성적)</li>
+                          <li>Key Results: 기준선→목표치→기한이 있는 정량 지표</li>
+                        </ul>
+                        <p>팀 예시</p>
+                        <ul>
+                          <li>O: 온보딩 경험 개선</li>
+                          <li>KR1: 첫 주 핵심기능 체험률 25%→40%</li>
+                          <li>KR2: 가입→활성 전환율 +15pp</li>
+                        </ul>
+                        <p>개인 예시</p>
+                        <ul>
+                          <li>O: 실험 주도 역량 강화</li>
+                          <li>KR1: 분기 A/B 4건 설계·분석</li>
+                          <li>KR2: 통계 검정 템플릿 1건 배포</li>
+                        </ul>
+                        <p>작성 팁</p>
+                        <ul style={{ marginBottom: 0 }}>
+                          <li>KR엔 모호한 표현 대신 수치와 기간을 명시합니다(예: “+15pp, 3월 말”)</li>
+                          <li>팀 KR과 개인 KR이 상·하향으로 연결되는지 점검합니다</li>
+                          <li>월간 체크인으로 진행률을 숫자로 업데이트하고, 분기 말 회고에서 측정/학습을 문서화합니다</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className={`${styles.demoCard} ${styles.demoMindmapCard}`}>
+                <div className={styles.demoCardHeader}>마인드맵 미리보기</div>
+                <div className={styles.demoMindmapReal}>
+                  <MindMap />
+                </div>
+              </div>
+              <div className={`${styles.demoCard} ${styles.demoSourcesCard}`}>
+                <div className={styles.sourcesHeader}>
+                  <h3 className={styles.sourcesTitle}>출처 미리보기</h3>
+                </div>
+                <div className={styles.sourcesList}>
+                  <div className={styles.sourceItem}>
+                    <a className={styles.sourceLink} href="#" onClick={(e) => e.preventDefault()}>OKR 가이드라인</a>
+                  </div>
+                  <div className={styles.sourceItem}>
+                    <a className={styles.sourceLink} href="#" onClick={(e) => e.preventDefault()}>분기별 목표 수립 체크리스트</a>
+                  </div>
+                  <div className={styles.sourceItem}>
+                    <a className={styles.sourceLink} href="#" onClick={(e) => e.preventDefault()}>팀/개인 OKR 예시 모음</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className={styles.stepsSection}>
+            <div className={styles.stepsGrid}>
+              <div className={styles.stepCard}>
+                <div className={styles.stepIndex}>1</div>
+                <div className={styles.stepTitle}>노션으로 로그인</div>
+                <div className={styles.stepDesc}>안전한 연결 후, 내 워크스페이스의 지식에 접근합니다.</div>
+              </div>
+              <div className={styles.stepCard}>
+                <div className={styles.stepIndex}>2</div>
+                <div className={styles.stepTitle}>질문하기</div>
+                <div className={styles.stepDesc}>주제를 입력하면 관련 노션 문서를 탐색해 통합 답변을 제공합니다.</div>
+              </div>
+              <div className={styles.stepCard}>
+                <div className={styles.stepIndex}>3</div>
+                <div className={styles.stepTitle}>마인드맵·출처 탐색</div>
+                <div className={styles.stepDesc}>핵심 키워드 흐름을 보고, 출처를 통해 원문으로 이동하세요.</div>
+              </div>
+            </div>
+          </section>
+
+          <div className={styles.footerNote}>로그인 후 전체 기능을 사용할 수 있습니다.</div>
         </div>
       )}
     </div>

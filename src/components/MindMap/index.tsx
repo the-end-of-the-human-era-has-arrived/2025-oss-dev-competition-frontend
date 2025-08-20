@@ -82,23 +82,24 @@ const fetchMindMapData = async (userId?: string): Promise<MindMapData> => {
 const getDummyData = (): MindMapData => {
   const dummyApiData = {
     nodes: [
-      { id: "central", notion_page_id: "page_001", keyword: "중심 아이디어" },
-      { id: "concept1", notion_page_id: "page_002", keyword: "하위 개념 1" },
-      { id: "concept2", notion_page_id: "page_003", keyword: "하위 개념 2" },
-      { id: "concept3", notion_page_id: "page_004", keyword: "하위 개념 3" },
-      { id: "related1", notion_page_id: "page_005", keyword: "관련 주제 A" },
-      { id: "related2", notion_page_id: "page_006", keyword: "관련 주제 B" },
-      { id: "detail1", notion_page_id: "page_007", keyword: "세부 사항 1" },
-      { id: "detail2", notion_page_id: "page_008", keyword: "세부 사항 2" },
+      { id: "okr", notion_page_id: "page_001", keyword: "OKR" },
+      { id: "objective", notion_page_id: "page_002", keyword: "Objective" },
+      { id: "key_result", notion_page_id: "page_003", keyword: "Key Result" },
+      { id: "alignment", notion_page_id: "page_004", keyword: "정렬(Alignment)" },
+      { id: "measurable", notion_page_id: "page_005", keyword: "측정 가능성" },
+      { id: "cadence", notion_page_id: "page_006", keyword: "분기 리뷰" },
+      { id: "team_link", notion_page_id: "page_007", keyword: "팀-개인 연결" },
+      { id: "metric", notion_page_id: "page_008", keyword: "지표 설계" },
     ],
     edges: [
-      { keyword1: "central", keyword2: "concept1" },
-      { keyword1: "central", keyword2: "concept2" },
-      { keyword1: "central", keyword2: "concept3" },
-      { keyword1: "concept1", keyword2: "detail1" },
-      { keyword1: "concept2", keyword2: "detail2" },
-      { keyword1: "related1", keyword2: "related2" },
-      { keyword1: "concept3", keyword2: "related1" },
+      { keyword1: "okr", keyword2: "objective" },
+      { keyword1: "okr", keyword2: "key_result" },
+      { keyword1: "okr", keyword2: "alignment" },
+      { keyword1: "okr", keyword2: "measurable" },
+      { keyword1: "okr", keyword2: "cadence" },
+      { keyword1: "okr", keyword2: "team_link" },
+      { keyword1: "okr", keyword2: "metric" },
+      { keyword1: "objective", keyword2: "key_result" },
     ],
   };
 
@@ -208,12 +209,11 @@ const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
   useEffect(() => {
     if (systemInitialized && user?.id) {
       const currentTime = Date.now();
-      // 중복 새로고침 방지 (5초 이내 중복 실행 방지)
       if (currentTime - lastSystemInitTime > 5000) {
         setTimeout(() => {
           refreshMindMapData();
           setLastSystemInitTime(currentTime);
-        }, 2000); // 2초 후 새로고침 (백엔드 처리 완료 대기)
+        }, 2000);
       }
     }
   }, [systemInitialized, user?.id, refreshMindMapData, lastSystemInitTime]);
@@ -461,7 +461,6 @@ const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
   if (mindMapData.nodes.length === 0) {
     return (
       <div className={styles.mindmapWrapper}>
-        {/* 새로고침 버튼 */}
         <button 
           className={styles.refreshButton} 
           onClick={refreshMindMapData}
@@ -480,7 +479,6 @@ const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
 
   return (
     <div className={styles.mindmapWrapper}>
-      {/* 새로고침 버튼 */}
       <button 
         className={styles.refreshButton} 
         onClick={refreshMindMapData}
@@ -596,7 +594,6 @@ const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
         </svg>
       </div>
 
-      {/* 줌 컨트롤 */}
       <div className={styles.zoomControls}>
         <button
           className={styles.zoomButton}

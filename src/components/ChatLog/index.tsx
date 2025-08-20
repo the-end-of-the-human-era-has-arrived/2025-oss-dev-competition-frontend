@@ -11,9 +11,11 @@ type ChatLogProps = {
   messages: Message[];
   onClear?: () => void;
   isLoading?: boolean;
+  hideControls?: boolean;
+  compact?: boolean;
 };
 
-const ChatLog: React.FC<ChatLogProps> = ({ messages, onClear, isLoading = false }) => {
+const ChatLog: React.FC<ChatLogProps> = ({ messages, onClear, isLoading = false, hideControls = false, compact = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 메시지나 로딩 상태가 변경될 때마다 스크롤을 맨 아래로 이동
@@ -24,8 +26,8 @@ const ChatLog: React.FC<ChatLogProps> = ({ messages, onClear, isLoading = false 
   }, [messages, isLoading]);
 
   return (
-    <div ref={containerRef} className={styles.container}>
-      {messages.length > 0 && (
+    <div ref={containerRef} className={`${styles.container} ${compact ? styles.compact : ''}`}>
+      {messages.length > 0 && !hideControls && (
         <div className={styles.header}>
           <button 
             onClick={onClear}
