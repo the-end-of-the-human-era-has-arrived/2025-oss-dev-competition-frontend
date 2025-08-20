@@ -208,12 +208,11 @@ const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
   useEffect(() => {
     if (systemInitialized && user?.id) {
       const currentTime = Date.now();
-      // 중복 새로고침 방지 (5초 이내 중복 실행 방지)
       if (currentTime - lastSystemInitTime > 5000) {
         setTimeout(() => {
           refreshMindMapData();
           setLastSystemInitTime(currentTime);
-        }, 2000); // 2초 후 새로고침 (백엔드 처리 완료 대기)
+        }, 2000);
       }
     }
   }, [systemInitialized, user?.id, refreshMindMapData, lastSystemInitTime]);
@@ -461,7 +460,6 @@ const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
   if (mindMapData.nodes.length === 0) {
     return (
       <div className={styles.mindmapWrapper}>
-        {/* 새로고침 버튼 */}
         <button 
           className={styles.refreshButton} 
           onClick={refreshMindMapData}
@@ -480,7 +478,6 @@ const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
 
   return (
     <div className={styles.mindmapWrapper}>
-      {/* 새로고침 버튼 */}
       <button 
         className={styles.refreshButton} 
         onClick={refreshMindMapData}
@@ -596,7 +593,6 @@ const MindMap: React.FC<MindMapProps> = ({ systemInitialized = false }) => {
         </svg>
       </div>
 
-      {/* 줌 컨트롤 */}
       <div className={styles.zoomControls}>
         <button
           className={styles.zoomButton}
